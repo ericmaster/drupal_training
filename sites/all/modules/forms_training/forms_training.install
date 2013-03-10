@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function forms_training_install(){
+  //Set home page to a default home page defined by the module
+  variable_set('site_frontpage', 'forms-training');  
+}

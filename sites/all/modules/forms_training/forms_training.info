@@ -1,0 +1,4 @@
+name = Forms Training
+description = Forms Training Module
+core = 7.x
+package = Devsu

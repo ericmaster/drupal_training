@@ -1,0 +1,114 @@
+<?php
+
+define('FORMS_TRAINING_WELCOME_TITLE', 'Welcome to this Drupal Forms Training Tutorial');
+define('FORMS_TRAINING_INSTRUCTIONS', '<p>In this Tutorial you will learn the skills to build and manage advanced form elements.</p><p> These are the following topics that we will cover, you can jump to any topic at any time:</p>');
+
+
+/**
+ * Implements hook_menu()
+ */
+function forms_training_menu(){
+  $items['forms-training'] = array(
+    'title' => 'Forms Training',
+    'page callback' => '_forms_training_landing_page',
+    'access callback' => TRUE, //Doesn't really matter to unrestrict access to this page
+    'type' => MENU_CALLBACK
+  );
+  $items['forms-training/%'] = array(
+    'title' => 'Forms Training - Exercise !number',
+    'title arguments' => array('!number' => 1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_forms_training_form', 1),
+    'access callback' => TRUE, //Doesn't really matter to unrestrict access to this page
+    'type' => MENU_CALLBACK,
+    'file' => 'forms_training.exercise.inc'
+  );
+  return $items;
+}
+
+/**
+ * Page callback for the main page for this training
+ */
+function _forms_training_landing_page(){
+  drupal_set_title('Forms Training');
+  $content['welcome']['#markup'] = '<h2>'.FORMS_TRAINING_WELCOME_TITLE.'</h2>';
+  $content['instructions']['#markup'] = FORMS_TRAINING_INSTRUCTIONS;
+  $content['content_items']['#markup'] = theme('item_list', array(
+    'items' => array(
+      ''
+    )
+  ));
+  $content['start']['#markup'] = l('Let\'s begin', 'forms-training/0');
+  return $content;
+}
+
+/**
+ * Forms training main form wrapper
+ */
+function _forms_training_form($form, &$form_state, $number){
+  $form_state['exercise_number'] = $number;
+  $form_def_name = '_forms_training_form_'.$number;
+  if(function_exists($form_def_name)){
+    $form_def_name($form, $form_state);
+  }
+  $form_exercise_def_name = 'forms_training_exercise_'.$number.'_form';
+  if(function_exists($form_exercise_def_name)){
+    $form['#prefix'] = '<strong>Your exercise form goes here:</strong>'.
+      '<div style="border: 2px solid #090; min-height: 10px; padding: 10px;">'.
+      drupal_render(drupal_get_form($form_exercise_def_name)).'</div>';
+  }
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => 'Next'
+  );
+  return $form;
+}
+
+/**
+ * Global submit handler for the training form
+ */
+function _forms_training_form_submit($form, &$form_state){
+  //dpm($form_state);
+  //$form_state['rebuild'] = TRUE;
+  $form_state['redirect'] = 'forms-training/'.($form_state['exercise_number']+1);
+}
+
+/*** FORMS TOPICS ***/
+
+function  _forms_training_get_topics(){
+  return array(
+    'Basic Concepts',
+    'Validation and Submit Handlers',
+     
+  );
+}
+
+/*** EXERCISE FORM DEFINITIONS ***/
+
+/**
+ * Excercise 1: Basic Concepts
+ */
+function _forms_training_form_0(&$form, &$form_state){
+  $form['subtitle']['#markup'] = '<h2>Basic Concepts</h2>';
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+   '<p>This first exercise consists on recreate the following form to review basic concepts on creating form elements. If you need to, you can go to the Drupal <a target="_blank" href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7">Form API Reference</a></p>'.'</div>';
+  $form['textfield'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Textfield Input Sample',
+    '#default_value' => 'A default value goes here'
+  );
+  $options = array('Option 1', 'Option 2', 'Option 3');
+  $form['options'] = array(
+    '#type' => 'radios',
+    '#title' => 'Options Input Sample',
+    '#options' => $options,
+    '#default_value' => 2
+  );
+  $form['additional_1']['#markup'] = '<div>After creating the given form elements, try changing the options input into the following checkboxes</div>';
+  $form['options_2'] = array(
+    '#type' => 'checkboxes',
+    '#title' => 'Checkboxes Input Sample',
+    '#options' => $options,
+    '#default_value' => array(1,2)
+  );
+}

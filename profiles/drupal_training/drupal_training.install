@@ -1,0 +1,21 @@
+<?php
+/**
+ * Implemennt hook_install().
+ *
+ * Perform actions to set up the site for this profile
+ */
+function drupal_training_install(){
+  include_once DRUPAL_ROOT . '/profiles/minimal/minimal.install';
+  minimal_install();
+  //remove some blocks
+  //$default_theme = variable_get('theme_default', 'bartik');
+  db_delete('block')
+    ->condition('module', 'system')
+    ->condition('delta', 'management')
+    ->execute();
+  db_delete('block')
+    ->condition('module', 'system')
+    ->condition('delta', 'navigation')
+    ->execute();
+  
+}

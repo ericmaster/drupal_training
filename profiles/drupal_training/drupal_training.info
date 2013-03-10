@@ -1,0 +1,9 @@
+name = Drupal Training
+description = Drupal Training Profile
+core = 7.x
+dependencies[] = block
+dependencies[] = dblog
+dependencies[] = admin_menu
+dependencies[] = admin_menu_toolbar
+dependencies[] = devel
+dependencies[] = forms_training
