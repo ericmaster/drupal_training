@@ -53,23 +53,38 @@ function _forms_training_form($form, &$form_state, $number){
   }
   $form_exercise_def_name = 'forms_training_exercise_'.$number.'_form';
   if(function_exists($form_exercise_def_name)){
-    $form['#prefix'] = '<strong>Your exercise form goes here:</strong>'.
+    $form['#suffix'] = '<strong>Your exercise form goes here:</strong>'.
       '<div style="border: 2px solid #090; min-height: 10px; padding: 10px;">'.
       drupal_render(drupal_get_form($form_exercise_def_name)).'</div>';
   }
+  if($number){
+    $form['previous'] = array(
+      '#type' => 'submit',
+      '#value' => 'Previous',
+      '#name' => 'previous',
+      '#submit' => array('_forms_training_form_previous_submit') 
+    );
+  }
   $form['next'] = array(
     '#type' => 'submit',
-    '#value' => 'Next'
+    '#value' => 'Next',
+    '#name' => 'next',
+    '#submit' => array('_forms_training_form_next_submit') 
   );
   return $form;
 }
 
 /**
- * Global submit handler for the training form
+ * Previous submit handler for the training form
  */
-function _forms_training_form_submit($form, &$form_state){
-  //dpm($form_state);
-  //$form_state['rebuild'] = TRUE;
+function _forms_training_form_previous_submit($form, &$form_state){
+  $form_state['redirect'] = 'forms-training/'.($form_state['exercise_number']-1);
+}
+
+/**
+ * Next submit handler for the training form
+ */
+function _forms_training_form_next_submit($form, &$form_state){
   $form_state['redirect'] = 'forms-training/'.($form_state['exercise_number']+1);
 }
 
@@ -86,7 +101,7 @@ function  _forms_training_get_topics(){
 /*** EXERCISE FORM DEFINITIONS ***/
 
 /**
- * Excercise 1: Basic Concepts
+ * Exercise 0: Basic Concepts
  */
 function _forms_training_form_0(&$form, &$form_state){
   $form['subtitle']['#markup'] = '<h2>Basic Concepts</h2>';
@@ -111,4 +126,43 @@ function _forms_training_form_0(&$form, &$form_state){
     '#options' => $options,
     '#default_value' => array(1,2)
   );
+}
+
+
+/**
+ * Exercise 1: Submit and validation handlers
+ */
+function _forms_training_form_1(&$form, &$form_state){
+  $form['subtitle']['#markup'] = '<h2>Submit and Validation Handlers</h2>';
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create a form similar to the following form (textfield and submit button) and add a validation handler that checks that the input in the checkbox has the string "Drupal Summit" (use strpos, regex or any other method you know) and submit handler that stores this into a variable named "forms_training_exercise_2_val". The content of the variable should display below once set:</p>';
+  $form['variable_val']['#markup'] = '<div><strong>Variable content:</strong> <span style="color: #090">'.variable_get('forms_training_exercise_2_val', '').'</span></div>';
+  $form['exercise_2'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Name the event you are attending to',
+    '#default_value' => '',
+  );
+  $form['exercise_2_submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+    '#validate' => array('_forms_training_form_1_validate'),
+    '#submit' => array('_forms_training_form_1_submit'),
+    '#suffix' => '<br />'
+  );
+}
+
+/**
+ * Exercise 1: Validation Handler
+ */
+function _forms_training_form_1_validate($form, &$form_state){
+  if(strpos($form_state['values']['exercise_2'], 'Drupal Summit') === FALSE){
+    form_error($form['exercise_2'], 'Text needs to contain "Drupal Summit"');
+  }
+}
+
+/**
+ * Exercise 1: Submit Handler
+ */
+function _forms_training_form_1_submit($form, &$form_state){
+  variable_set('forms_training_exercise_2_val', $form_state['values']['exercise_2']);
 }
