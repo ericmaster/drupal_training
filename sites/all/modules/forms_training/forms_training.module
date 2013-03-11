@@ -33,10 +33,12 @@ function _forms_training_landing_page(){
   drupal_set_title('Forms Training');
   $content['welcome']['#markup'] = '<h2>'.FORMS_TRAINING_WELCOME_TITLE.'</h2>';
   $content['instructions']['#markup'] = FORMS_TRAINING_INSTRUCTIONS;
+  $topics = _forms_training_get_topics();
+  foreach($topics as $id => $topic){
+    $items[] = l($topic, 'forms-training/'.$id);
+  }
   $content['content_items']['#markup'] = theme('item_list', array(
-    'items' => array(
-      ''
-    )
+    'items' => $items
   ));
   $content['start']['#markup'] = l('Let\'s begin', 'forms-training/0');
   return $content;
@@ -46,7 +48,9 @@ function _forms_training_landing_page(){
  * Forms training main form wrapper
  */
 function _forms_training_form($form, &$form_state, $number){
+  $topics = _forms_training_get_topics();
   $form_state['exercise_number'] = $number;
+  $form['subtitle']['#markup'] = '<h2>'.$topics[$number].'</h2>';
   $form_def_name = '_forms_training_form_'.$number;
   if(function_exists($form_def_name)){
     $form_def_name($form, $form_state);
@@ -94,7 +98,14 @@ function  _forms_training_get_topics(){
   return array(
     'Basic Concepts',
     'Validation and Submit Handlers',
-     
+    'Upload and store an image with managed_file',
+    'Creating new form elements with #ajax',
+    'Altering Form Elements with #ajax',
+    'Create new form elements',
+    'Multistep Forms',
+    'Draggable Table Forms',
+    'Altering Forms',
+    'Use Vertical Tabs with Forms',
   );
 }
 
@@ -104,7 +115,6 @@ function  _forms_training_get_topics(){
  * Exercise 0: Basic Concepts
  */
 function _forms_training_form_0(&$form, &$form_state){
-  $form['subtitle']['#markup'] = '<h2>Basic Concepts</h2>';
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
    '<p>This first exercise consists on recreate the following form to review basic concepts on creating form elements. If you need to, you can go to the Drupal <a target="_blank" href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7">Form API Reference</a></p>'.'</div>';
   $form['textfield'] = array(
@@ -133,16 +143,15 @@ function _forms_training_form_0(&$form, &$form_state){
  * Exercise 1: Submit and validation handlers
  */
 function _forms_training_form_1(&$form, &$form_state){
-  $form['subtitle']['#markup'] = '<h2>Submit and Validation Handlers</h2>';
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create a form similar to the following form (textfield and submit button) and add a validation handler that checks that the input in the checkbox has the string "Drupal Summit" (use strpos, regex or any other method you know) and submit handler that stores this into a variable named "forms_training_exercise_2_val". The content of the variable should display below once set:</p>';
-  $form['variable_val']['#markup'] = '<div><strong>Variable content:</strong> <span style="color: #090">'.variable_get('forms_training_exercise_2_val', '').'</span></div>';
-  $form['exercise_2'] = array(
+    '<p>Create a form similar to the following form (textfield and submit button) and add a validation handler that checks that the input in the checkbox has the string "Drupal Summit" (use strpos, regex or any other method you know) and submit handler that stores this into a variable named "forms_training_exercise_1_val". The content of the variable should display below once set:</p>';
+  $form['variable_val']['#markup'] = '<div><strong>Variable content:</strong> <span style="color: #090">'.variable_get('forms_training_exercise_1_val', '').'</span></div>';
+  $form['exercise_1'] = array(
     '#type' => 'textfield',
     '#title' => 'Name the event you are attending to',
     '#default_value' => '',
   );
-  $form['exercise_2_submit'] = array(
+  $form['exercise_1_submit'] = array(
     '#type' => 'submit',
     '#value' => 'Submit',
     '#validate' => array('_forms_training_form_1_validate'),
@@ -155,8 +164,8 @@ function _forms_training_form_1(&$form, &$form_state){
  * Exercise 1: Validation Handler
  */
 function _forms_training_form_1_validate($form, &$form_state){
-  if(strpos($form_state['values']['exercise_2'], 'Drupal Summit') === FALSE){
-    form_error($form['exercise_2'], 'Text needs to contain "Drupal Summit"');
+  if(strpos($form_state['values']['exercise_1'], 'Drupal Summit') === FALSE){
+    form_error($form['exercise_1'], 'Text needs to contain "Drupal Summit"');
   }
 }
 
@@ -164,5 +173,86 @@ function _forms_training_form_1_validate($form, &$form_state){
  * Exercise 1: Submit Handler
  */
 function _forms_training_form_1_submit($form, &$form_state){
-  variable_set('forms_training_exercise_2_val', $form_state['values']['exercise_2']);
+  variable_set('forms_training_exercise_1_val', $form_state['values']['exercise_1']);
 }
+
+/**
+ * Exercise 2: Upload and store and image with managed file
+ */
+function _forms_training_form_4(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
+/**
+ * Exercise 3: Creating new form elements with #ajax
+ */
+function _forms_training_form_3(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+  $count = 1;
+  for($i = 0; $i < $count; $i++){
+    $form['exercise_2'][$i] = array(
+      '#type' => 'textfield',
+      '#title' => 'Some textfield'
+    );
+  }
+  $form['add_another'] = array(
+    '#type' => 'submit',
+    '#value' => 'Add another',
+    '#ajax' => array(
+      'callback' => ''
+    ),
+    '#suffix' => '<br />'
+  );
+}
+
+/**
+ * Exercise 4: Altering form elements with #ajax
+ */
+function _forms_training_form_4(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can add multiple fields dynamically</p>';
+  $form
+}
+
+/**
+ * Exercise 5: Ajax
+ */
+function _forms_training_form_5(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
+/**
+ * Exercise 6: Ajax
+ */
+function _forms_training_form_6(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
+/**
+ * Exercise 7: Ajax
+ */
+function _forms_training_form_7(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
+/**
+ * Exercise 8: Ajax
+ */
+function _forms_training_form_8(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
+/**
+ * Exercise 9: Ajax
+ */
+function _forms_training_form_9(&$form, &$form_state){
+  $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+}
+
