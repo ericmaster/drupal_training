@@ -1,7 +1,9 @@
 <?php
 
 define('FORMS_TRAINING_WELCOME_TITLE', 'Welcome to this Drupal Forms Training Tutorial');
-define('FORMS_TRAINING_INSTRUCTIONS', '<p>In this Tutorial you will learn the skills to build and manage advanced form elements.</p><p> These are the following topics that we will cover, you can jump to any topic at any time:</p>');
+define('FORMS_TRAINING_INSTRUCTIONS', '<p>In this Tutorial you will learn the skills to build and manage advanced form elements.</p>'.
+  '<p>Most of the work you will need to do it (unless indicated otherwise) in the forms_training.exercise.inc file located in the forms_training module located in the /sites/all/modules path of your Drupal root</p>'.
+  '<p> These are the following topics that we will cover, you can jump to any topic at any time:</p>');
 
 
 /**
@@ -101,7 +103,7 @@ function  _forms_training_get_topics(){
     'Upload and store an image with managed_file',
     'Creating new form elements with #ajax',
     'Altering Form Elements with #ajax',
-    'Create new form elements',
+    'Create new form element types',
     'Multistep Forms',
     'Draggable Table Forms',
     'Altering Forms',
@@ -179,9 +181,56 @@ function _forms_training_form_1_submit($form, &$form_state){
 /**
  * Exercise 2: Upload and store and image with managed file
  */
-function _forms_training_form_4(&$form, &$form_state){
+function _forms_training_form_2(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>Create the following form using the managed_file element and store the image fid in a variable named "forms_training_exercise_2_fid"</p>';
+  
+  $exercise_2_image = variable_get('forms_training_exercise_2_fid', ''); //variable stored fid in this case
+  $form['exercise_2_image'] = array(
+    '#title' => 'Exercise 2 Image',
+    '#type' => 'managed_file',
+    '#default_value' => is_numeric($exercise_2_image)?$exercise_2_image:0,
+    '#upload_location' => 'public://' //could be a different schema
+  );
+  $form['store'] = array(
+    '#type' => 'submit',
+    '#value' => 'Store Image',
+    '#submit' => array('_forms_training_form_2_submit')
+  );
+  if(!empty($exercise_2_image)){
+    $vars = (array) file_load($exercise_2_image);
+    $vars['path'] = $vars['uri'];
+  }
+  $form['stored_image']['#markup'] = '<p>Your stored image should show below:</p>'.
+    '<p>'.(!empty($exercise_2_image)?theme('image', $vars):'No image stored yet').'</p>';
+}
+
+/**
+ * Exercise 2: Store image submit handler
+ */
+function _forms_training_form_2_submit($form, &$form_state){
+  $current_image_fid = variable_get('forms_training_exercise_2_fid', '');
+  if(!is_null($form_state['values']['exercise_2_image'])){
+    if($current_image_fid != $form_state['values']['exercise_2_image']){
+      if(!empty($current_image_fid)){
+        //delete current file
+        $current_image_file = file_load($current_image_fid);
+        file_usage_delete($current_image_file, 'forms_training');
+        file_delete($current_image_file);
+        variable_set('forms_training_exercise_2_fid', '');
+        drupal_set_message('Image Deleted');
+      }
+      if($form_state['values']['exercise_2_image'] != 0){
+        $image_file = file_load($form_state['values']['exercise_2_image']);
+        $image_file->status = FILE_STATUS_PERMANENT;
+        file_save($image_file);
+        file_usage_add($image_file, 'forms_training', 'image', $image_file->fid);
+        variable_set('forms_training_exercise_2_fid', 
+          $form_state['values']['exercise_2_image']);
+        drupal_set_message('Image Stored');
+      }
+    }
+  }
 }
 
 /**
@@ -190,21 +239,56 @@ function _forms_training_form_4(&$form, &$form_state){
 function _forms_training_form_3(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
     '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
-  $count = 1;
+  if (isset($form_state['count'])) {
+    $count = $form_state['count'];
+  }
+  else {
+    $count = 1;
+  }
+  $form['count'] = array(
+    '#type' => 'value',
+    '#value' => $count
+  );
+  $form['exercise_3'] = array(
+    '#type' => 'fieldset',
+    '#prefix' => '<div id="textfield-set">',
+    '#suffix' => '</div>'
+  );
   for($i = 0; $i < $count; $i++){
-    $form['exercise_2'][$i] = array(
+    $form['exercise_3']['field_'.$i] = array(
       '#type' => 'textfield',
-      '#title' => 'Some textfield'
+      '#title' => 'Enter an item name'
     );
   }
   $form['add_another'] = array(
     '#type' => 'submit',
-    '#value' => 'Add another',
+    '#value' => t('Add more'),
+    '#attributes' => array(
+      'title' => t("If the amount of boxes above isn't enough, click here to add more."),
+    ),
+    '#submit' => array('_forms_training_exercise_3_submit'),
     '#ajax' => array(
-      'callback' => ''
+      'callback' => '_forms_training_exercise_3_js',
+      'wrapper' => 'textfield-set',
+      'effect' => 'fade',
     ),
     '#suffix' => '<br />'
   );
+}
+
+/**
+ * Exercise 3: Submit handler for add more
+ */
+function _forms_training_exercise_3_submit($form, &$form_state){
+  $form_state['count'] = (!empty($form_state['count'])?$form_state['count']:1) + 1;
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Exercise 3: Returns the form element to be rendered via ajax
+ */
+function _forms_training_exercise_3_js($form, &$form_state){
+  return $form['exercise_3'];
 }
 
 /**
@@ -212,16 +296,63 @@ function _forms_training_form_3(&$form, &$form_state){
  */
 function _forms_training_form_4(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can add multiple fields dynamically</p>';
-  $form
+    '<p>The objective now is to create two dropdown inputs. The first (like the one showing below) should have the following categories (or whatever categories you can come up with):</p>'.
+    '<p>'.theme('item_list', array('Colors', 'Fruits', 'Vehicles')).'</p>'.
+    '<p>The second dropdown should display items within the category selected. For example, if selected category is Fruits, the second dropdown should display something like: Apple, Banana, Orange, Grapes, etc</p>'.
+    '<p>Try the following form to show you how this should be working.</p>';
+  $category = !empty($form_state['values']['exercise_4_dropdown_1'])?$form_state['values']['exercise_4_dropdown_1']:'';
+  $form['exercise_4_dropdown_1'] = array(
+    '#type' => 'select',
+    '#title' => 'Category',
+    '#options' => array(
+      '' => '- Select a category -', 
+      'colors' => 'Colors', 
+      'fruits' => 'Fruits', 
+      'vehicles' => 'Vehicles'),
+    '#default_value' => $category,
+    '#ajax' => array(
+      'callback' => '_forms_training_exercise_4_js',
+      'wrapper' => 'category-items-wrapper',
+      'effect' => 'fade',
+    ),
+  );
+  switch($category){
+    case 'colors':
+      $category_items = array('blue', 'red', 'yellow');
+      break;
+    case 'fruits':
+      $category_items = array('apple', 'banana', 'kiwi');
+      break;
+    case 'vehicles':
+      $category_items = array('car', 'plane', 'boat');
+      break;
+    case '':
+      $category_items = array('' => '- select a category first -');
+  }
+  $form['exercise_4_dropdown_2'] = array(
+    '#prefix' => '<div id="category-items-wrapper">',
+    '#suffix' => '</div>',
+    '#type' => 'select',
+    '#title' => 'Category Items',
+    '#disabled' => !empty($category_items[''])?TRUE:FALSE,
+    '#options' => $category_items
+  );
 }
 
 /**
- * Exercise 5: Ajax
+ * Exercise 4: Ajax callback returning updated form element
+ */
+function _forms_training_exercise_4_js($form, &$form_state){
+  return $form['exercise_4_dropdown_2'];
+}
+
+/**
+ * Exercise 5: Creting new form element types
  */
 function _forms_training_form_5(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>In this exercise you will create a new form element type. For this exercise you will need to implement some hooks in the forms_training.hooks.inc file</p>';
+  
 }
 
 /**
