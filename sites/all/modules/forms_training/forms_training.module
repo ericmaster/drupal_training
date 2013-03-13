@@ -1,5 +1,7 @@
 <?php
 
+require_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'forms_training') . '/forms_training.hooks.inc');
+
 define('FORMS_TRAINING_WELCOME_TITLE', 'Welcome to this Drupal Forms Training Tutorial');
 define('FORMS_TRAINING_INSTRUCTIONS', '<p>In this Tutorial you will learn the skills to build and manage advanced form elements.</p>'.
   '<p>Most of the work you will need to do it (unless indicated otherwise) in the forms_training.exercise.inc file located in the forms_training module located in the /sites/all/modules path of your Drupal root</p>'.
@@ -351,39 +353,219 @@ function _forms_training_exercise_4_js($form, &$form_state){
  */
 function _forms_training_form_5(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>In this exercise you will create a new form element type. For this exercise you will need to implement some hooks in the forms_training.hooks.inc file</p>';
-  
+    '<p>In this exercise you will create a new form element type. '.
+      'For this exercise you will need to implement some hooks in the forms_training.hooks.inc file</p>'.
+    '<p>The following hooks will be useful for this exercise</p>'.
+    '<p>'.theme('item_list', array( 'items' => 
+      array(
+        l('hook_element_info', 'http://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_element_info/7', array('attributes' => array('target' => '_blank'))),
+        l('hook_theme', 'http://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_theme/7', array('attributes' => array('target' => '_blank')))
+      )
+    )).'</p>'.
+    '<p>In the following sample you can find a sample of a range input type element that is rendered through the Drupal Form API. Check out the code that is already in the forms_training.hooks.inc as a sample and create another HTML5 element (could be range, date, color picker, etc).</p>';
+  $form['exercise_5_element'] = array(
+    '#type' => 'samplerange',
+    '#min' => 0,
+    '#max' => 200,
+    '#step' => 20
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Test',
+    '#submit' => array('_forms_training_form_5_submit'),
+    '#suffix' => '<br />'
+  );
 }
 
 /**
- * Exercise 6: Ajax
+ * Test exercise 5 submit handler
+ */
+function _forms_training_form_5_submit($form, &$form_state){
+  drupal_set_message($form_state['values']['exercise_5_element']);
+}
+
+/**
+ * Implements hook_element_info().
+ */
+function forms_training_element_info(){
+  return array(
+    'samplerange' => array(
+      '#input' => TRUE,
+      '#min' => 0,
+      '#max' => 100,
+      '#step' => 1,
+      '#theme' => 'samplerange',
+      '#theme_wrappers' => array('form_element')
+  ));
+}
+
+/**
+ * Exercise 6: 'Multistep Forms',
  */
 function _forms_training_form_6(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>The following is an example of a multistep form that changes it\'s state regardless of the path it\'s being accesed from.</p>'.
+    '<p>Your exercise here will be to create a 3 step wizard form and display a success message after the third step.</p>';
+  if (empty($form_state['step'])) {
+    $form_state['step'] = 1;
+  }
+  $step = $form_state['step'];
+  $form['step']['#markup'] = '<h1>Step '.$step.'</h1>';
+  $form['step_value_'.$step] = array(
+    '#type' => 'textfield',
+    '#title' => 'Step Value',
+    '#default_value' => !empty($form_state['values']['step_value_'.$step])?$form_state['values']['step_value_'.$step]:''
+  );
+  if ($step > 1) {
+    $form['prev_step'] = array(
+      '#type' => 'submit',
+      '#value' => t('Previous Step'),
+      '#name' => 'prev-step',
+      '#submit' => array('_forms_training_form_6_previous_submit'),
+    );
+  }
+  if ($step < 3) {
+    $form['next_step'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next Step'),
+      '#name' => 'next-step',
+      '#submit' => array('_forms_training_form_6_next_submit'),
+    );
+  }
+  else {
+    $form['finish'] = array(
+      '#type' => 'submit',
+      '#value' => t('Finish'),
+      '#submit' => array('_forms_training_form_6_submit')
+    );
+  }
+  $form['br']['#markup'] = '<br />';
 }
 
 /**
- * Exercise 7: Ajax
+ * Multistep previous handler
+ */
+function _forms_training_form_6_previous_submit($form, &$form_state){
+  $current_step = &$form_state['step'];
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+  if ($current_step > 1) {
+    $current_step--;
+    $form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Multistep next handler
+ */
+function _forms_training_form_6_next_submit($form, &$form_state){
+  $current_step = &$form_state['step'];
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+  if ($current_step < 3) {
+    $current_step++;
+    if (!empty($form_state['step_information'][$current_step]['stored_values'])) {
+      $form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+    }
+    else {
+      $form_state['values'] = array();
+    }
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+function _forms_training_form_6_submit($form, &$form_state){
+  $current_step = &$form_state['step'];
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+  dpm($form_state['step_information']);
+}
+
+/**
+ * Exercise 7: 'Draggable Table Forms',
  */
 function _forms_training_form_7(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>Create the following draggable table form. You can check the code in forms_training.module as a guide</p>';
+  $form['draggable_table'] = array(
+    '#type' => 'fieldset',
+    '#theme' => 'forms_training_draggable_table',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  for($i = 0; $i < 3; $i++){
+    $form['draggable_table'][$i]['textfield'] = array(
+      '#type' => 'textfield',
+    );
+    $form['draggable_table'][$i]['select'] = array(
+      '#type' => 'select',
+      '#options' => array(1,2,3)
+    );
+    $form['draggable_table'][$i]['weight'] = array(
+      '#type' => 'textfield'
+    );
+  }    
 }
 
 /**
- * Exercise 8: Ajax
+ * Exercise 8: 'Altering Forms',
  */
 function _forms_training_form_8(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>Alter the following form element to reduce the number of options using a pre_render (am after_build callback could be used as well, keep in mind it is called earlier) callback function</p>';
+  $form['exercise_8_options'] = array(
+    '#type' => 'radios',
+    '#options' => array('Keep 1', 'Keep 2', 'Remove 3', 'Remove 4', 'Keep 5')
+  );
 }
 
+/*function forms_training_form_alter(&$form, &$form_state, $form_id){
+  if($form_id == '_forms_training_form' && isset($form['exercise_8_options'])){
+    $form['exercise_8_options']['#pre_render'][] = 'exercise_8_alter_element';
+  }
+}
+
+function exercise_8_alter_element($element){
+  $children = element_children($element);
+  foreach($children as $prop_key){
+    if(strpos($element[$prop_key]['#title'], 'Remove') !== FALSE){
+      unset($element[$prop_key]);
+    }
+  }
+  unset($element['#options']);
+  return $element;
+}*/
+
 /**
- * Exercise 9: Ajax
+ * Exercise 9: 'Use Vertical Tabs',
  */
 function _forms_training_form_9(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>Create the following form by using vertical tabs:</p>';
+  $form['vertical_tabs'] = array(
+    '#type' => 'vertical_tabs',
+  );
+  $form['vertical_tabs']['fieldset_1'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Fieldset 1'
+  );
+  $form['vertical_tabs']['fieldset_1']['textfield'] = array(
+    '#type' => 'textfield'
+  );
+  $form['vertical_tabs']['fieldset_1']['radios'] = array(
+    '#type' => 'radios',
+    '#options' => array(1,2,3)
+  );
+  $form['vertical_tabs']['fieldset_2'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Fieldset 2'
+  );
+  $form['vertical_tabs']['fieldset_2']['select'] = array(
+    '#type' => 'select',
+    '#options' => array('a', 'b', 'c')
+  );
+  $form['vertical_tabs']['fieldset_2']['checkboxes'] = array(
+    '#type' => 'checkboxes',
+    '#options' => array('x', 'y', 'z')
+  );
 }
 
