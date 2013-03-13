@@ -120,7 +120,9 @@ function  _forms_training_get_topics(){
  */
 function _forms_training_form_0(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-   '<p>This first exercise consists on recreate the following form to review basic concepts on creating form elements. If you need to, you can go to the Drupal <a target="_blank" href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7">Form API Reference</a></p>'.'</div>';
+   '<p>This first exercise consists on recreate the following form to review basic concepts on creating form elements. </p>'.
+   '<p>If you need to, you can go to the Drupal <a target="_blank" href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7">Form API Reference</a></p>'.
+   '</div>';
   $form['textfield'] = array(
     '#type' => 'textfield',
     '#title' => 'Textfield Input Sample',
@@ -140,6 +142,13 @@ function _forms_training_form_0(&$form, &$form_state){
     '#options' => $options,
     '#default_value' => array(1,2)
   );
+  $form['additional_2']['#markup'] = '<div>You might try to change the checkboxes into a dropdown.</div>';
+  $form['options_3'] = array(
+    '#type' => 'select',
+    '#title' => 'Select Input Sample',
+    '#options' => $options,
+    '#default_value' => array(1,2)
+  );
 }
 
 
@@ -148,7 +157,9 @@ function _forms_training_form_0(&$form, &$form_state){
  */
 function _forms_training_form_1(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create a form similar to the following form (textfield and submit button) and add a validation handler that checks that the input in the checkbox has the string "Drupal Summit" (use strpos, regex or any other method you know) and submit handler that stores this into a variable named "forms_training_exercise_1_val". The content of the variable should display below once set:</p>';
+    '<p>Create a form similar to the following form (textfield and submit button) and add a validation handler that checks that the input in the checkbox has the string "Drupal Summit" (use strpos, regex or any other method you know) and submit handler that stores this into a variable named "forms_training_exercise_1_val". <p>'.
+    '<p>You can review the process of working with form handlers in <a href="http://drupal.org/node/751826">http://drupal.org/node/751826</a></p>'.
+    '</p>The content of the variable should display below once set:</p>';
   $form['variable_val']['#markup'] = '<div><strong>Variable content:</strong> <span style="color: #090">'.variable_get('forms_training_exercise_1_val', '').'</span></div>';
   $form['exercise_1'] = array(
     '#type' => 'textfield',
@@ -185,7 +196,8 @@ function _forms_training_form_1_submit($form, &$form_state){
  */
 function _forms_training_form_2(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form using the managed_file element and store the image fid in a variable named "forms_training_exercise_2_fid"</p>';
+    '<p>Create the following form using the managed_file element and store the image fid in a variable named "forms_training_exercise_2_fid".</p>'.
+    '<p>If you need to, you can get some help from the Drupal Form API reference regarding the <a href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7#managed_file">managed file</a> element type. Also, feel free to check the source code in the forms_training.module.</p>';
   
   $exercise_2_image = variable_get('forms_training_exercise_2_fid', ''); //variable stored fid in this case
   $form['exercise_2_image'] = array(
@@ -211,6 +223,7 @@ function _forms_training_form_2(&$form, &$form_state){
  * Exercise 2: Store image submit handler
  */
 function _forms_training_form_2_submit($form, &$form_state){
+  //Load current image fid if any
   $current_image_fid = variable_get('forms_training_exercise_2_fid', '');
   if(!is_null($form_state['values']['exercise_2_image'])){
     if($current_image_fid != $form_state['values']['exercise_2_image']){
@@ -223,6 +236,7 @@ function _forms_training_form_2_submit($form, &$form_state){
         drupal_set_message('Image Deleted');
       }
       if($form_state['values']['exercise_2_image'] != 0){
+        //store the image
         $image_file = file_load($form_state['values']['exercise_2_image']);
         $image_file->status = FILE_STATUS_PERMANENT;
         file_save($image_file);
@@ -240,7 +254,8 @@ function _forms_training_form_2_submit($form, &$form_state){
  */
 function _forms_training_form_3(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button</p>';
+    '<p>Create the following form and assign an ajax callback to the submit button so we can create another button.</p>'.
+    '<p>You can check the Drupal API Reference to check how the <a href="http://api.drupal.org/api/drupal/developer!topics!forms_api_reference.html/7#ajax">\'#ajax\'</a> element property work and how to set up the ajax callback.</p>';
   if (isset($form_state['count'])) {
     $count = $form_state['count'];
   }
@@ -362,7 +377,8 @@ function _forms_training_form_5(&$form, &$form_state){
         l('hook_theme', 'http://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_theme/7', array('attributes' => array('target' => '_blank')))
       )
     )).'</p>'.
-    '<p>In the following sample you can find a sample of a range input type element that is rendered through the Drupal Form API. Check out the code that is already in the forms_training.hooks.inc as a sample and create another HTML5 element (could be range, date, color picker, etc).</p>';
+    '<p>In the following sample you can find a sample of a range input type element that is rendered through the Drupal Form API. Check out the code that is already in the forms_training.hooks.inc as a sample and create another HTML5 element (could be range, date, color picker, etc).</p>'.
+    '<p>It\'s recommended to check how core element types are defined through the <a href="http://api.drupal.org/api/drupal/modules%21system%21system.module/function/system_element_info/7">system_element_info</a> function</p>';
   $form['exercise_5_element'] = array(
     '#type' => 'samplerange',
     '#min' => 0,
@@ -405,7 +421,8 @@ function forms_training_element_info(){
 function _forms_training_form_6(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
     '<p>The following is an example of a multistep form that changes it\'s state regardless of the path it\'s being accesed from.</p>'.
-    '<p>Your exercise here will be to create a 3 step wizard form and display a success message after the third step.</p>';
+    '<p>Your exercise here will be to create a 3 step wizard form and display a success message after the third step.</p>'.
+    '<p>Check the following <a href="http://grasmash.com/article/building-multistep-registration-form-drupal-7">example</a> which pretty much covers in detail how to manage multistep forms. The key here is to render the form differently depending on a value stored in the $form_state array.</p>';
   if (empty($form_state['step'])) {
     $form_state['step'] = 1;
   }
@@ -484,7 +501,9 @@ function _forms_training_form_6_submit($form, &$form_state){
  */
 function _forms_training_form_7(&$form, &$form_state){
   $form['instructions']['#markup'] = '<div><p>Instructions:</p>'.
-    '<p>Create the following draggable table form. You can check the code in forms_training.module as a guide</p>';
+    '<p>Create the following draggable table form. You can check the code in forms_training.module as a guide.</p>'.
+    '<p>Key functions here are <a href="http://api.drupal.org/api/drupal/includes!theme.inc/function/theme_table/7">theme_table</a> and <a href="http://api.drupal.org/api/drupal/includes!common.inc/function/drupal_add_tabledrag/7">drupal_add_tabledrag</a>.</p>'.
+    '<p>If you need to register and define a new theme function you can do it in the file forms_training.hooks.inc</p>';
   $form['draggable_table'] = array(
     '#type' => 'fieldset',
     '#theme' => 'forms_training_draggable_table',
@@ -495,6 +514,7 @@ function _forms_training_form_7(&$form, &$form_state){
   for($i = 0; $i < 3; $i++){
     $form['draggable_table'][$i]['textfield'] = array(
       '#type' => 'textfield',
+      '#default_value' => 'Content '.$i
     );
     $form['draggable_table'][$i]['select'] = array(
       '#type' => 'select',
@@ -503,7 +523,7 @@ function _forms_training_form_7(&$form, &$form_state){
     $form['draggable_table'][$i]['weight'] = array(
       '#type' => 'textfield'
     );
-  }    
+  }
 }
 
 /**
