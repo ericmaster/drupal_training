@@ -1,5 +1,5 @@
 <?php
-// == Devsu branding =========================================================
+// == Nimblersoft branding =========================================================
 
 /**
  * Implements hook_init().
@@ -15,7 +15,7 @@ function drupal_training_init() {
     $conf['theme_settings'] = array(
       'default_logo' => 0,
       // Default to different logos depending on whether Drupal is installed or not.
-      'logo_path' => empty($conf['site_name']) ? 'profiles/drupal_training/logo-devsu.png' : 'profiles/drupal_training/logo-devsu.png',
+      'logo_path' => empty($conf['site_name']) ? 'profiles/drupal_training/logo-nimblersoft.png' : 'profiles/drupal_training/logo-nimblersoft.png',
     );
   }
 }
